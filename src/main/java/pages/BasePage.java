@@ -8,8 +8,6 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Wait;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import utils.Init;
-
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 public class BasePage {
@@ -27,24 +25,6 @@ public class BasePage {
     public void inputInField(WebElement element, String inputText) {
         element.clear();
         element.sendKeys(inputText);
-    }
-
-    public void backSpaceSymbols(WebElement element, int count) {
-        element.click();
-        for (int i = 0; i < count; i++) {
-            element.sendKeys(Keys.BACK_SPACE);
-        }
-    }
-
-    public void selectMenuItem(List<WebElement> menuElements, String name){
-        for (WebElement element : menuElements ){
-            if (element.getText().equalsIgnoreCase(name)){
-                element.click();
-                return;
-            }
-            System.out.println(element.getText());
-        }
-        Assert.fail("Не найден элмент коллеции - " + name);
     }
 
     /**
@@ -68,14 +48,20 @@ public class BasePage {
         }
     }
 
-    public void waitCheckedValue(WebElement element, String expected) {
-        WebDriverWait wait = new WebDriverWait(Init.getDriver(), 10);
-        wait.withMessage(String.format("Неправильное значение [%s], ожидалось [%s]", element.getText(), expected))
-                .until((ExpectedCondition<Boolean>) driver -> {
-                    if (element.getText().equals(expected)) {
-                        return Boolean.TRUE;
-                    }
-                    return false;
-                });
+    public void waitPageLoaded(){
+        WebDriverWait wait = new WebDriverWait(Init.getDriver(), 30);
+        wait.ignoring(NoSuchElementException.class).until((ExpectedCondition<Boolean>) driver ->
+                !isPresent( By.xpath("//*[@class='helpers-params loading']")));
+    }
+
+    public boolean isPresent(By locator){
+        try {
+            Init.getDriver().manage().timeouts().implicitlyWait(3, TimeUnit.SECONDS);
+            return Init.getDriver().findElement(locator).isDisplayed();
+        }catch (NoSuchElementException e){
+            return false;
+        }finally {
+            Init.getDriver().manage().timeouts().implicitlyWait(60, TimeUnit.SECONDS);
+        }
     }
 }

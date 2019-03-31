@@ -2,6 +2,7 @@ package steps;
 
 import cucumber.api.java.en.When;
 import org.junit.Assert;
+import org.openqa.selenium.By;
 import pages.BuyPage;
 import pages.CartPage;
 
@@ -39,6 +40,7 @@ public class CartSteps {
 
     @When("выбираем в главном поиске значения \"(.+)\"")
     public void mainSearch(String value) {
+        cartPage.waitPageLoaded();
         cartPage.clickOnElement(cartPage.mainSearch);
         cartPage.inputInField(cartPage.mainSearch, value);
     }
@@ -48,13 +50,22 @@ public class CartSteps {
         cartPage.clickOnElement(cartPage.goButton);
     }
 
-    @When("проверяем что 5 выбранных товаров в корзине \"(.+)\", \"(.+)\", \"(.+)\", \"(.+)\", \"(.+)\"")
-    public void checkProducts(String first, String second, String third, String fourth, String fifth) {
-        Assert.assertEquals(cartPage.goodsList.get(0).getText(), fifth);
-        Assert.assertEquals(cartPage.goodsList.get(1).getText(), fourth);
-        Assert.assertEquals(cartPage.goodsList.get(2).getText(), third);
-        Assert.assertEquals(cartPage.goodsList.get(3).getText(), second);
-        Assert.assertEquals(cartPage.goodsList.get(4).getText(), first);
+    @When("выбираем \"(.+)\" товаров и нажимаем купить")
+    public void buyProducts(int value) {
+        for (int i = 0; i < value; i++) {
+            buyPage.goodsList.get(i).findElement(By.xpath(".//child::div[@class=\"buy-button-container\"]")).click();
+            buyPage.getGoodsName().add(buyPage.goodsList.get(i).findElement(By.xpath(".//child::div[@data-test-id=\"tile-name\"]")).getText());
+        }
+        buyPage.setGoodsName(buyPage.getGoodsName());
+    }
+
+    @When("проверяем что выбранные товары в корзине")
+    public void checkProducts() {
+        Assert.assertEquals(cartPage.goodsList.get(0).getText().replace(", Black", ""), buyPage.getGoodsName().get(4));
+        Assert.assertEquals(cartPage.goodsList.get(1).getText().replace(", Black", ""), buyPage.getGoodsName().get(3));
+        Assert.assertEquals(cartPage.goodsList.get(2).getText().replace(", цвет: черный", ""), buyPage.getGoodsName().get(2));
+        Assert.assertEquals(cartPage.goodsList.get(3).getText(), buyPage.getGoodsName().get(1));
+        Assert.assertEquals(cartPage.goodsList.get(4).getText().replace(", Black", ""), buyPage.getGoodsName().get(0));
     }
 
     @When("удаляем все товары из корзины")
